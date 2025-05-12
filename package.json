@@ -25,7 +25,10 @@
     "undeploy": "cf undeploy NTTProject --delete-services --delete-service-keys --delete-service-brokers",
     "build": "rimraf resources mta_archives && mbt build --mtar archive",
     "deploy": "cf deploy mta_archives/archive.mtar --retries 1",
-    "watch-project2book": "cds watch --open project2book/webapp/index.html?sap-ui-xx-viewCache=false"
+    "watch-project2book": "cds watch --open project2book/webapp/index.html?sap-ui-xx-viewCache=false",
+    "watch-bookapp-books": "cds watch --open bookapp-books/webapp/index.html?sap-ui-xx-viewCache=false",
+    "watch-bookapp-customers": "cds watch --open bookapp-customers/webapp/index.html?sap-ui-xx-viewCache=false",
+    "watch-bookapp-categories": "cds watch --open bookapp-categories/webapp/index.html?sap-ui-xx-viewCache=false"
   },
   "cds": {
     "requires": {
@@ -41,6 +44,9 @@
   },
   "sapux": [
     "app/project2",
-    "app/project2book"
+    "app/project2book",
+    "app/bookapp-books",
+    "app/bookapp-customers",
+    "app/bookapp-categories"
   ]
 }

@@ -68,6 +68,18 @@ modules:
       - viewfiorielementsbookproject2book.zip
       name: viewfiorielementsbookproject2book
       target-path: app/
+    - artifacts:
+      - bookappbooks.zip
+      name: bookappbooks
+      target-path: app/
+    - artifacts:
+      - bookappcustomers.zip
+      name: bookappcustomers
+      target-path: app/
+    - artifacts:
+      - bookappcategories.zip
+      name: bookappcategories
+      target-path: app/
 - name: NTTProject-portal-deployer
   type: com.sap.application.content
   path: app/portal
@@ -97,6 +109,36 @@ modules:
 - name: viewfiorielementsbookproject2book
   type: html5
   path: app/project2book
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: bookappbooks
+  type: html5
+  path: app/bookapp-books
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: bookappcustomers
+  type: html5
+  path: app/bookapp-customers
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: bookappcategories
+  type: html5
+  path: app/bookapp-categories
   build-parameters:
     build-result: dist
     builder: custom

@@ -1,4 +1,7 @@
 
-using from './project2/annotations';
 
-using from './project2book/annotations';
+using from './bookapp-books/annotations';
+
+using from './bookapp-customers/annotations';
+
+using from './bookapp-categories/annotations';

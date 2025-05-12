@@ -1,3 +1,5 @@
-ID,title,stock
-1,Wuthering Heights,100
-2,Jane Eyre,500
+ID,title,description,author,datePub,stock,category_ID
+c0d63a8d-fcf6-4e9e-9952-e41315dbfafe,Interestelar,"O FIM DA TERRA NÃO SERÁ O NOSSO FIM [...] ",Chistoper Nolan,2016-03-01,10,9fdac731-bfba-4d1e-a83d-082e36e72f2a
+75f64d7b-4b98-4ea8-81fb-ed4673828c8b,Entendendo Algoritmos,"Um guia ilustrado para programadores [...]",Aditya Y. Bhargava,2017-04-20,5,3e336566-ef3c-437f-8ad4-871d180d9cfe
+b5ef350d-8bc2-44f5-890c-69eda0e9ba97,Harry Potter e a Pedra Filosofal,"Harry Potter and the Philosopher's Stone [...]",J. K. Rowling,1997-06-26,8,b1c5e289-0ca0-41ef-9b86-62ce6cb202ba
+dd86fd46-4ef9-4235-8719-d8ed02f3e3ce,Uma farsa de amor na Espanha,"Uma viagem à Espanha, o homem mais irritante [...]",Elena Armas,2022-05-10,3,d98ee800-c49e-4d35-b079-804150c788a6
