@@ -8,10 +8,10 @@ entity Category: cuid, managed {
 }
 entity Books: cuid, managed {  
   title: String;
-  author: String;
-  stock: Integer;
-  datePub: Date;
   description: String;
+  author: String;
+  datePub: Date;
+  stock: Integer;
   category: Association to Category;
 }
 
