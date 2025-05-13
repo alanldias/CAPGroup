@@ -1,133 +1,208 @@
 _schema-version: 3.3.0
 ID: NTTProject
+description: A simple CAP project.
 version: 1.0.0
-description: "A simple CAP project."
+modules:
+- name: NTTProject-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: NTTProject-auth
+  - name: NTTProject-db
+  - name: NTTProject-connectivity
+  - name: NTTProject-destination
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+  build-parameters:
+    builder: npm-ci
+- name: NTTProject-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: NTTProject-db
+  parameters:
+    buildpack: nodejs_buildpack
+- name: NTTProject
+  type: approuter.nodejs
+  path: app/router
+  requires:
+  - name: srv-api
+    group: destinations
+    properties:
+      forwardAuthToken: true
+      name: srv-api
+      url: ~{srv-url}
+  - name: NTTProject-auth
+  - name: NTTProject-destination
+  - name: NTTProject-html5-runtime
+  - name: NTTProject-portal
+  provides:
+  - name: app-api
+    properties:
+      app-protocol: ${protocol}
+      app-uri: ${default-uri}
+  parameters:
+    disk-quota: 256M
+    keep-existing-routes: true
+    memory: 256M
+- name: NTTProject-app-deployer
+  type: com.sap.application.content
+  path: gen
+  requires:
+  - name: NTTProject-html5-repo-host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: app/
+    requires:
+    - artifacts:
+      - viewfioribookproject2.zip
+      name: viewfioribookproject2
+      target-path: app/
+    - artifacts:
+      - viewfiorielementsbookproject2book.zip
+      name: viewfiorielementsbookproject2book
+      target-path: app/
+    - artifacts:
+      - bookappbooks.zip
+      name: bookappbooks
+      target-path: app/
+    - artifacts:
+      - bookappcustomers.zip
+      name: bookappcustomers
+      target-path: app/
+    - artifacts:
+      - bookappcategories.zip
+      name: bookappcategories
+      target-path: app/
+- name: NTTProject-portal-deployer
+  type: com.sap.application.content
+  path: app/portal
+  requires:
+  - name: NTTProject-portal
+    parameters:
+      content-target: true
+      service-key:
+        config:
+          content-endpoint: developer
+        name: NTTProject-portal-key
+  - name: NTTProject-auth
+  - name: NTTProject-html5-repo-host
+  - name: NTTProject-app-deployer
+  deployed-after:
+  - NTTProject-app-deployer
+- name: viewfioribookproject2
+  type: html5
+  path: app/project2
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: viewfiorielementsbookproject2book
+  type: html5
+  path: app/project2book
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: bookappbooks
+  type: html5
+  path: app/bookapp-books
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: bookappcustomers
+  type: html5
+  path: app/bookapp-customers
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: bookappcategories
+  type: html5
+  path: app/bookapp-categories
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: NTTProject-auth
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      tenant-mode: dedicated
+      xsappname: NTTProject-${org}-${space}
+    path: ./xs-security.json
+    service: xsuaa
+    service-plan: application
+- name: NTTProject-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+- name: NTTProject-connectivity
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: connectivity
+    service-plan: lite
+- name: NTTProject-destination
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: false
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+    service: destination
+    service-plan: lite
+- name: NTTProject-html5-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-host
+- name: NTTProject-html5-runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-runtime
+- name: NTTProject-portal
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: portal
+    service-plan: standard
 parameters:
-  enable-parallel-deployments: true
   deploy_mode: html5-repo
+  enable-parallel-deployments: true
 build-parameters:
   before-all:
-    - builder: custom
-      commands:
-        - npm ci
-        - npx cds build --production
-modules:
-  - name: NTTProject-srv
-    type: nodejs
-    path: gen/srv
-    parameters:
-      instances: 1
-      buildpack: nodejs_buildpack
-    build-parameters:
-      builder: npm-ci
-    provides:
-      - name: srv-api # required by consumers of CAP services (e.g. approuter)
-        properties:
-          srv-url: ${default-url}
-    requires:
-      - name: NTTProject-auth
-      - name: NTTProject-db
-      - name: NTTProject-connectivity
-      - name: NTTProject-destination
-
-  - name: NTTProject-db-deployer
-    type: hdb
-    path: gen/db
-    parameters:
-      buildpack: nodejs_buildpack
-    requires:
-      - name: NTTProject-db
-
-  - name: NTTProject
-    type: approuter.nodejs
-    path: app/router
-    parameters:
-      keep-existing-routes: true
-      disk-quota: 256M
-      memory: 256M
-    requires:
-      - name: srv-api
-        group: destinations
-        properties:
-          name: srv-api # must be used in xs-app.json as well
-          url: ~{srv-url}
-          forwardAuthToken: true
-      - name: NTTProject-auth
-      - name: NTTProject-destination
-      - name: NTTProject-html5-runtime
-      - name: NTTProject-portal
-    provides:
-      - name: app-api
-        properties:
-          app-protocol: ${protocol}
-          app-uri: ${default-uri}
-
-  - name: NTTProject-app-deployer
-    type: com.sap.application.content
-    path: gen
-    requires:
-      - name: NTTProject-html5-repo-host
-        parameters:
-          content-target: true
-    build-parameters:
-      build-result: app/
-      requires:
-
-
-  - name: NTTProject-portal-deployer
-    type: com.sap.application.content
-    path: app/portal
-    requires:
-      - name: NTTProject-portal
-        parameters:
-          content-target: true
-          service-key:
-            name: NTTProject-portal-key
-            config:
-              content-endpoint: developer
-      - name: NTTProject-auth
-      - name: NTTProject-html5-repo-host
-      - name: NTTProject-app-deployer
-    deployed-after:
-      - NTTProject-app-deployer
-resources:
-  - name: NTTProject-auth
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: xsuaa
-      service-plan: application
-      path: ./xs-security.json
-      config:
-        xsappname: NTTProject-${org}-${space}
-        tenant-mode: dedicated
-  - name: NTTProject-db
-    type: com.sap.xs.hdi-container
-    parameters:
-      service: hana
-      service-plan: hdi-shared
-  - name: NTTProject-connectivity
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: connectivity
-      service-plan: lite
-  - name: NTTProject-destination
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: destination
-      service-plan: lite
-
-  - name: NTTProject-html5-repo-host
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-host
-  - name: NTTProject-html5-runtime
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-runtime
-  - name: NTTProject-portal
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: portal
-      service-plan: standard
+  - builder: custom
+    commands:
+    - npm ci
+    - npx cds build --production

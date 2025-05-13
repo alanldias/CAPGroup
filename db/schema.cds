@@ -17,10 +17,10 @@ entity Books: cuid, managed {
   category: Association to Category;
 }
 
-@odata.draft.enabled
+
 entity Interest: cuid, managed {
   customer: Association to Customers;
-  category: Association to Category;
+  category: Association to Category @Common.Text: category.name;
 }
 
 @odata.draft.enabled
