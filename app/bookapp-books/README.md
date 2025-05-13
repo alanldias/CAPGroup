@@ -1,7 +1,7 @@
 ## Application Details
 |               |
 | ------------- |
-|**Generation Date and Time**<br>Mon May 12 2025 17:45:16 GMT+0000 (Coordinated Universal Time)|
+|**Generation Date and Time**<br>Tue May 13 2025 13:37:07 GMT+0000 (Coordinated Universal Time)|
 |**App Generator**<br>SAP Fiori Application Generator|
 |**App Generator Version**<br>1.17.4|
 |**Generation Platform**<br>SAP Business Application Studio|
@@ -9,7 +9,7 @@
 |**Service Type**<br>Local Cap|
 |**Service URL**<br>http://localhost:4004/odata/v4/catalog/|
 |**Module Name**<br>bookapp-books|
-|**Application Title**<br>App Title|
+|**Application Title**<br>book app books|
 |**Namespace**<br>|
 |**UI5 Theme**<br>sap_horizon|
 |**UI5 Version**<br>1.135.0|

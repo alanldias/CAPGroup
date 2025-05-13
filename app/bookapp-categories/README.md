@@ -1,7 +1,7 @@
 ## Application Details
 |               |
 | ------------- |
-|**Generation Date and Time**<br>Mon May 12 2025 17:49:32 GMT+0000 (Coordinated Universal Time)|
+|**Generation Date and Time**<br>Tue May 13 2025 13:33:38 GMT+0000 (Coordinated Universal Time)|
 |**App Generator**<br>SAP Fiori Application Generator|
 |**App Generator Version**<br>1.17.4|
 |**Generation Platform**<br>SAP Business Application Studio|
@@ -9,14 +9,14 @@
 |**Service Type**<br>Local Cap|
 |**Service URL**<br>http://localhost:4004/odata/v4/catalog/|
 |**Module Name**<br>bookapp-categories|
-|**Application Title**<br>App Title|
+|**Application Title**<br>book app categories|
 |**Namespace**<br>|
 |**UI5 Theme**<br>sap_horizon|
 |**UI5 Version**<br>1.135.0|
 |**Enable Code Assist Libraries**<br>False|
 |**Enable TypeScript**<br>False|
 |**Add Eslint configuration**<br>False|
-|**Main Entity**<br>Books|
+|**Main Entity**<br>Category|
 
 ## bookapp-categories
 

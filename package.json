@@ -47,6 +47,8 @@
     "app/project2book",
     "app/bookapp-books",
     "app/bookapp-customers",
-    "app/bookapp-categories"
+    "app/bookapp-categories",
+    "app/bookapp-categories",
+    "app/bookapp-books"
   ]
 }

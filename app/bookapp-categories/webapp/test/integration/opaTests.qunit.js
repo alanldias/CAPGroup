@@ -2,10 +2,10 @@ sap.ui.require(
     [
         'sap/fe/test/JourneyRunner',
         'bookappcategories/test/integration/FirstJourney',
-		'bookappcategories/test/integration/pages/BooksList',
-		'bookappcategories/test/integration/pages/BooksObjectPage'
+		'bookappcategories/test/integration/pages/CategoryList',
+		'bookappcategories/test/integration/pages/CategoryObjectPage'
     ],
-    function(JourneyRunner, opaJourney, BooksList, BooksObjectPage) {
+    function(JourneyRunner, opaJourney, CategoryList, CategoryObjectPage) {
         'use strict';
         var JourneyRunner = new JourneyRunner({
             // start index.html in web folder
@@ -16,8 +16,8 @@ sap.ui.require(
         JourneyRunner.run(
             {
                 pages: { 
-					onTheBooksList: BooksList,
-					onTheBooksObjectPage: BooksObjectPage
+					onTheCategoryList: CategoryList,
+					onTheCategoryObjectPage: CategoryObjectPage
                 }
             },
             opaJourney.run

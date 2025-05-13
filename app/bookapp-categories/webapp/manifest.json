@@ -13,7 +13,7 @@
     "sourceTemplate": {
       "id": "@sap/generator-fiori:lrop",
       "version": "1.17.4",
-      "toolsId": "d2ac183f-2400-4ccf-8e36-103b6d58d845"
+      "toolsId": "9e5aad00-d303-44e5-8605-1c231cd00771"
     },
     "dataSources": {
       "mainService": {
@@ -85,28 +85,28 @@
       "routes": [
         {
           "pattern": ":?query:",
-          "name": "BooksList",
-          "target": "BooksList"
+          "name": "CategoryList",
+          "target": "CategoryList"
         },
         {
-          "pattern": "Books({key}):?query:",
-          "name": "BooksObjectPage",
-          "target": "BooksObjectPage"
+          "pattern": "Category({key}):?query:",
+          "name": "CategoryObjectPage",
+          "target": "CategoryObjectPage"
         }
       ],
       "targets": {
-        "BooksList": {
+        "CategoryList": {
           "type": "Component",
-          "id": "BooksList",
+          "id": "CategoryList",
           "name": "sap.fe.templates.ListReport",
           "options": {
             "settings": {
-              "contextPath": "/Books",
+              "contextPath": "/Category",
               "variantManagement": "Page",
               "navigation": {
-                "Books": {
+                "Category": {
                   "detail": {
-                    "route": "BooksObjectPage"
+                    "route": "CategoryObjectPage"
                   }
                 }
               },
@@ -120,14 +120,14 @@
             }
           }
         },
-        "BooksObjectPage": {
+        "CategoryObjectPage": {
           "type": "Component",
-          "id": "BooksObjectPage",
+          "id": "CategoryObjectPage",
           "name": "sap.fe.templates.ObjectPage",
           "options": {
             "settings": {
               "editableHeaderContent": false,
-              "contextPath": "/Books"
+              "contextPath": "/Category"
             }
           }
         }

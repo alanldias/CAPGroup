@@ -1,33 +1,39 @@
 using CatalogService as service from '../../srv/cat-service';
+
 annotate service.Books with @(
     UI.FieldGroup #GeneratedGroup : {
         $Type : 'UI.FieldGroupType',
         Data : [
             {
                 $Type : 'UI.DataField',
-                Label : 'title',
+                Label : 'Titulo',
                 Value : title,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'author',
+                Label : 'Descrição',
+                Value : description,
+            },
+            {
+                $Type : 'UI.DataField',
+                Label : 'Autor',
                 Value : author,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'stock',
-                Value : stock,
-            },
-            {
-                $Type : 'UI.DataField',
-                Label : 'datePub',
+                Label : 'DatePub',
                 Value : datePub,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'description',
-                Value : description,
+                Label : 'Estoque',
+                Value : stock,
             },
+            {
+                $Type : 'UI.DataField',
+                Label : 'Categoria',
+                Value : category_ID,
+            }
         ],
     },
     UI.Facets : [
@@ -41,29 +47,34 @@ annotate service.Books with @(
     UI.LineItem : [
         {
             $Type : 'UI.DataField',
-            Label : 'title',
+            Label : 'Titulo',
             Value : title,
         },
         {
             $Type : 'UI.DataField',
-            Label : 'author',
+            Label : 'Descrição',
+            Value : description,
+        },
+        {
+            $Type : 'UI.DataField',
+            Label : 'Autor',
             Value : author,
         },
         {
             $Type : 'UI.DataField',
-            Label : 'stock',
-            Value : stock,
-        },
-        {
-            $Type : 'UI.DataField',
-            Label : 'datePub',
+            Label : 'DatePub',
             Value : datePub,
         },
         {
             $Type : 'UI.DataField',
-            Label : 'description',
-            Value : description,
+            Label : 'Estoque',
+            Value : stock,
         },
+        {
+            $Type : 'UI.DataField',
+            Label : 'Categoria',
+            Value : category_ID,
+        }
     ],
 );
 
@@ -89,3 +100,6 @@ annotate service.Books with {
     }
 };
 
+annotate service.Books with {
+  IsActiveEntity @Common.FilterDefaultValue: true;
+};
