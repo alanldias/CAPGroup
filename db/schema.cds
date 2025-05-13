@@ -31,4 +31,3 @@ entity Customers: cuid, managed {
   interest : Composition of many Interest on interest.customer = $self;
 }
 
-

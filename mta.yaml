@@ -61,6 +61,9 @@ modules:
     build-result: app/
     requires:
     - artifacts:
+      - fioricustomproject1.zip
+      name: fioricustomproject1
+    - artifacts:
       - viewfioribookproject2.zip
       name: viewfioribookproject2
       target-path: app/
