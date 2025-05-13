@@ -4,30 +4,29 @@ namespace my.bookshop;
 
 @odata.draft.enabled
 entity Category: cuid, managed {
-  name: String;
+  name: String not null;
   description: String;
 }
 @odata.draft.enabled
 entity Books: cuid, managed {  
-  title: String;
+  title: String not null;
   description: String;
-  author: String;
-  datePub: Date;
+  author: String not null;
+  datePub: Date not null;
   stock: Integer;
-  category: Association to Category;
+  category: Association to Category not null;
 }
 
-@odata.draft.enabled
 entity Interest: cuid, managed {
-  customer: Association to Customers;
-  category: Association to Category;
+  customer: Association to Customers not null;
+  category: Association to Category not null;
 }
 
 @odata.draft.enabled
 entity Customers: cuid, managed {
-  name: String;
-  dateNasc: Date;
-  cpf: String;
+  name: String not null;
+  dateNasc: Date not null;
+  cpf: String not null;
   interest : Composition of many Interest on interest.customer = $self;
 }
 
