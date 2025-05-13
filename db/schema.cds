@@ -17,16 +17,10 @@ entity Books: cuid, managed {
   category: Association to Category not null;
 }
 
-<<<<<<< HEAD
-entity Interest: cuid, managed {
-  customer: Association to Customers not null;
-  category: Association to Category not null;
-=======
-
 entity Interest: cuid, managed {
   customer: Association to Customers;
   category: Association to Category @Common.Text: category.name;
->>>>>>> origin/dev
+
 }
 
 @odata.draft.enabled
