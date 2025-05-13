@@ -7,5 +7,9 @@
       "csrfProtection": true
     }
   ],
+<<<<<<< HEAD
   "welcomeFile": "/fioricustomproject1"
+=======
+  "welcomeFile": "/viewfioribookproject2"
+>>>>>>> origin/dev
 }
