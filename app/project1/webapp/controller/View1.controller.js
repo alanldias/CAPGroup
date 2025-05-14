@@ -5,7 +5,7 @@ sap.ui.define([
 ], (Controller) => {
     "use strict";
 
-    return Controller.extend("fioricustom.project1.controller.View1", {
+    return Controller.extend("fioricustom.project1.controller.View1", { 
         onInit() {
         },
         
@@ -175,32 +175,91 @@ sap.ui.define([
         },
 
         _onSaveNewBook: async function () {
+            const oTitle = sap.ui.getCore().byId("addTitle");
+            const oAuthor = sap.ui.getCore().byId("addAuthor");
+            const oCategoryId = sap.ui.getCore().byId("addCategoryId");
+            const oDesc = sap.ui.getCore().byId("addDesc");
+            const oDatePicker = sap.ui.getCore().byId("addDatePub");
+            const oStock = sap.ui.getCore().byId("addStock");
+        
+            const title = oTitle.getValue().trim();
+            const author = oAuthor.getValue().trim();
+            const categoryId = oCategoryId.getValue().trim();
+            const description = oDesc.getValue().trim();
+            const datePub = oDatePicker.getDateValue();
+            const stockValue = parseInt(oStock.getValue());
+        
+            let isValid = true;
+        
+            // Título
+            if (!title || title.length < 3) {
+                oTitle.setValueState("Error");
+                oTitle.setValueStateText("Título deve ter ao menos 3 caracteres.");
+                isValid = false;
+            } else {
+                oTitle.setValueState("None");
+            }
+        
+            // Autor
+            if (!author) {
+                oAuthor.setValueState("Error");
+                oAuthor.setValueStateText("Autor é obrigatório.");
+                isValid = false;
+            } else {
+                oAuthor.setValueState("None");
+            }
+        
+            // Categoria
+            if (!categoryId) {
+                oCategoryId.setValueState("Error");
+                oCategoryId.setValueStateText("Categoria é obrigatória.");
+                isValid = false;
+            } else {
+                oCategoryId.setValueState("None");
+            }
+        
+            // Data
+            if (!datePub || datePub > new Date()) {
+                oDatePicker.setValueState("Error");
+                oDatePicker.setValueStateText("Data inválida ou no futuro.");
+                isValid = false;
+            } else {
+                oDatePicker.setValueState("None");
+            }
+        
+            // Estoque
+            if (isNaN(stockValue) || stockValue < 0) {
+                oStock.setValueState("Error");
+                oStock.setValueStateText("Estoque deve ser um número não-negativo.");
+                isValid = false;
+            } else {
+                oStock.setValueState("None");
+            }
+        
+            if (!isValid) {
+                sap.m.MessageBox.warning("Por favor, corrija os erros antes de salvar.");
+                return;
+            }
+        
             const oModel = this.getView().getModel();
             const sGroupId = "addBookGroup";
         
             try {
-                const oDate = sap.ui.getCore().byId("addDatePub").getDateValue();
-                const sDate = oDate ? oDate.toISOString().split("T")[0] : null;
-        
-                const stockValue = parseInt(sap.ui.getCore().byId("addStock").getValue());
-        
+                const sDate = datePub.toISOString().split("T")[0];
                 const oNewBook = {
-                    title: sap.ui.getCore().byId("addTitle").getValue(),
-                    author: sap.ui.getCore().byId("addAuthor").getValue(),
-                    category_ID: sap.ui.getCore().byId("addCategoryId").getValue(),
-                    description: sap.ui.getCore().byId("addDesc").getValue(),
+                    title,
+                    author,
+                    category_ID: categoryId,
+                    description,
                     datePub: sDate,
-                    stock: isNaN(stockValue) ? 0 : stockValue
+                    stock: stockValue
                 };
         
-                // ✅ Aqui usamos bindList().create() que funciona com OData V4
                 const oBinding = oModel.bindList("/BooksNoDraft", null, null, null, {
                     $$updateGroupId: sGroupId
                 });
         
                 oBinding.create(oNewBook);
-        
-                // Enviar para o backend
                 await oModel.submitBatch(sGroupId);
         
                 this._oAddDialog.close();
@@ -211,6 +270,7 @@ sap.ui.define([
                 sap.m.MessageBox.error("Erro ao criar livro.");
             }
         },
+        
         
         onAddBook: function () {
             if (!this._oAddDialog) {
@@ -320,8 +380,69 @@ sap.ui.define([
         },
 
         _onSaveEditBook: async function () {
+            const oTitle = sap.ui.getCore().byId("editTitle");
+            const oAuthor = sap.ui.getCore().byId("editAuthor");
+            const oCategoryId = sap.ui.getCore().byId("editCategoryId");
+            const oDesc = sap.ui.getCore().byId("editDesc");
+            const oDatePicker = sap.ui.getCore().byId("editDatePub");
+            const oStock = sap.ui.getCore().byId("editStock");
+        
+            const title = oTitle.getValue().trim();
+            const author = oAuthor.getValue().trim();
+            const categoryId = oCategoryId.getValue().trim();
+            const description = oDesc.getValue().trim();
+            const datePub = oDatePicker.getDateValue();
+            const stockValue = parseInt(oStock.getValue());
+        
+            let isValid = true;
+        
+            if (!title || title.length < 3) {
+                oTitle.setValueState("Error");
+                oTitle.setValueStateText("Título deve ter ao menos 3 caracteres.");
+                isValid = false;
+            } else {
+                oTitle.setValueState("None");
+            }
+        
+            if (!author) {
+                oAuthor.setValueState("Error");
+                oAuthor.setValueStateText("Autor é obrigatório.");
+                isValid = false;
+            } else {
+                oAuthor.setValueState("None");
+            }
+        
+            if (!categoryId) {
+                oCategoryId.setValueState("Error");
+                oCategoryId.setValueStateText("Categoria é obrigatória.");
+                isValid = false;
+            } else {
+                oCategoryId.setValueState("None");
+            }
+        
+            if (!datePub || datePub > new Date()) {
+                oDatePicker.setValueState("Error");
+                oDatePicker.setValueStateText("Data inválida ou no futuro.");
+                isValid = false;
+            } else {
+                oDatePicker.setValueState("None");
+            }
+        
+            if (isNaN(stockValue) || stockValue < 0) {
+                oStock.setValueState("Error");
+                oStock.setValueStateText("Estoque deve ser um número não-negativo.");
+                isValid = false;
+            } else {
+                oStock.setValueState("None");
+            }
+        
+            if (!isValid) {
+                sap.m.MessageBox.warning("Por favor, corrija os erros antes de salvar.");
+                return;
+            }
+        
             const oModel = this.getView().getModel();
-            const sPath = this._oEditContext.getPath(); // exemplo: /Books(guid)
+            const sPath = this._oEditContext.getPath();
             const sGroupId = "editBookGroup";
         
             try {
@@ -332,19 +453,13 @@ sap.ui.define([
                 await oBinding.initialize();
                 const oContext = oBinding.getBoundContext();
         
-                oContext.setProperty("title", sap.ui.getCore().byId("editTitle").getValue());
-                oContext.setProperty("author", sap.ui.getCore().byId("editAuthor").getValue());
-                oContext.setProperty("category_ID", sap.ui.getCore().byId("editCategoryId").getValue());
-                oContext.setProperty("description", sap.ui.getCore().byId("editDesc").getValue());
+                oContext.setProperty("title", title);
+                oContext.setProperty("author", author);
+                oContext.setProperty("category_ID", categoryId);
+                oContext.setProperty("description", description);
+                oContext.setProperty("datePub", datePub.toISOString().split("T")[0]);
+                oContext.setProperty("stock", stockValue);
         
-                const oDate = sap.ui.getCore().byId("editDatePub").getDateValue();
-                const sDate = oDate ? oDate.toISOString().split("T")[0] : null;
-                oContext.setProperty("datePub", sDate);
-        
-                const stockValue = parseInt(sap.ui.getCore().byId("editStock").getValue());
-                oContext.setProperty("stock", isNaN(stockValue) ? 0 : stockValue);
-        
-                // ✅ Submete via model, e não no context
                 await oModel.submitBatch(sGroupId);
         
                 this._oEditDialog.close();
@@ -355,7 +470,7 @@ sap.ui.define([
                 sap.m.MessageBox.error("Erro ao atualizar o livro.");
             }
         },
-
+        
         onDeleteBook: function (oEvent) {
             const oContext = oEvent.getSource().getBindingContext();
             const oModel = this.getView().getModel();
