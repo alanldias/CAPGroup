@@ -2,12 +2,12 @@ using { cuid, managed } from '@sap/cds/common';
 
 namespace my.bookshop;
 
-@odata.draft.enabled
+
 entity Category: cuid, managed {
   name: String not null;
   description: String;
 }
-@odata.draft.enabled
+
 entity Books: cuid, managed {  
   title: String not null;
   description: String;
@@ -23,7 +23,7 @@ entity Interest: cuid, managed {
 
 }
 
-@odata.draft.enabled
+
 entity Customers: cuid, managed {
   name: String not null;
   dateNasc: Date not null;

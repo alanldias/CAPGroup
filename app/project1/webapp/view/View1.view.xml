@@ -50,7 +50,7 @@
 
 
                 <Table id="BooksTable" items="{
-                                        path: '/Books',
+                                        path: '/BooksNoDraft',
                                         parameters: {
                                         $select: 'ID,title,author,datePub,description',
                                         $expand: 'category'
