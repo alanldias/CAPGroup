@@ -1,322 +1,163 @@
-const cds = require('@sap/cds')
-const { Books, Customers, Category, Interest } = cds.entities('my.bookshop')
+const cds = require('@sap/cds');
 
-// Constantes para validação
-const VALIDATION_RULES = {
-    BOOK: {
-        MIN_TITLE_LENGTH: 6,
-        MIN_AUTHOR_LENGTH: 4,
-        DEFAULT_STOCK: 0
-    },
-    CUSTOMER: {
-        MIN_NAME_LENGTH: 3,
-        CPF_LENGTH: 11
-    },
-    CATEGORY: {
-        MIN_NAME_LENGTH: 3
-    }
-}
+module.exports = cds.service.impl(async function () {
+  const { Books, Customers, Category, Interest } = this.entities;
+  const db = await cds.connect.to('db');
 
-module.exports = cds.service.impl(async function() {
+  // ===== BOOKS =====
+  this.before(['CREATE', 'UPDATE'], 'Books', async (req) => {
+    const { title, author, stock, datePub, description, category_ID } = req.data;
 
-    // --- Funções utilitárias ---
-    // Sanitiza strings removendo espaços
-    const sanitizeData = (data) => {
-        const sanitized = {}
-        for (let key in data) {
-            if (typeof data[key] === 'string') {
-                sanitized[key] = data[key].trim()
-            } else {
-                sanitized[key] = data[key]
-            }
-        }
-        return sanitized
+    if (!title || title.trim().length < 6) {
+      return req.error(400, `Título deve ter pelo menos 6 caracteres`);
     }
 
-    // Validação de Livros
-    const validateBook = (data, req) => {
-        console.log('Validando livro:', data)
-        const { title, author, stock, datePub, description } = data
-        const validations = [
-            {
-                condition: !title || title.length < VALIDATION_RULES.BOOK.MIN_TITLE_LENGTH,
-                message: `O título deve ter pelo menos ${VALIDATION_RULES.BOOK.MIN_TITLE_LENGTH} caracteres`
-            },
-            {
-                condition: !author || author.length < VALIDATION_RULES.BOOK.MIN_AUTHOR_LENGTH,
-                message: `O nome do autor deve ter pelo menos ${VALIDATION_RULES.BOOK.MIN_AUTHOR_LENGTH} caracteres`
-            },
-            {
-                condition: !datePub,
-                message: "Data de publicação é obrigatória!"
-            },
-            {
-                condition: !description,
-                message: "Descrição é obrigatória!"
-            },
-            {
-                condition: data.stock < 0,
-                message: "O estoque não pode estar negativo"
-            },
-            {
-                condition: !(data.category || data.category_ID),
-                message: "Categoria é obrigatória"
-            }
-        ]
-        validations.forEach(({ condition, message }) => {
-            if (condition) req.error(400, message)
-        })
-
-        if (!stock) data.stock = VALIDATION_RULES.BOOK.DEFAULT_STOCK
-
+    if (!author || author.trim().length < 4) {
+      return req.error(400, `Autor deve ter pelo menos 4 caracteres`);
     }
 
-    // Validação de Clientes
-    const validateCustomer = (data, req) => {
-        console.log('Validando cliente:', data)
-        const { name, dateNasc, cpf } = data
-        const validations = [
-            {
-                condition: !name || name.length <= VALIDATION_RULES.CUSTOMER.MIN_NAME_LENGTH,
-                message: `O nome deve ter pelo menos ${VALIDATION_RULES.CUSTOMER.MIN_NAME_LENGTH} caracteres`
-            },
-            {
-                condition: !dateNasc,
-                message: "Data de nascimento é obrigatória!"
-            },
-            {
-                condition: !cpf || cpf.length !== VALIDATION_RULES.CUSTOMER.CPF_LENGTH,
-                message: "CPF inválido!"
-            }
-        ]
-        validations.forEach(({ condition, message }) => {
-            if (condition) req.error(400, message)
-        })
-        return data
+    if (stock < 0) {
+        return req.error(400, 'Estoque não pode ser negativo');
+    }
+  
+    if (!stock) {
+        return req.error(400, 'Estoque não pode estar vazio');
     }
 
-    // Validação de Categorias
-    const validateCategory = (data, req) => {
-        console.log('Validando categoria:', data)
-        const { name, description } = data
-        const validations = [
-            {
-                condition: !name || name.length <= VALIDATION_RULES.CATEGORY.MIN_NAME_LENGTH,
-                message: `O nome deve ter pelo menos ${VALIDATION_RULES.CATEGORY.MIN_NAME_LENGTH} caracteres`
-            },
-            {
-                condition: !description,
-                message: "Descrição é obrigatória!"
-            }
-        ]
-        validations.forEach(({ condition, message }) => {
-            if (condition) req.error(400, message)
-        })
-        return data
+    if (!datePub) {
+      return req.error(400, 'Data de publicação é obrigatória');
     }
 
-    // =========================
-    // === HANDLERS: BOOKS ====
-    // =========================
+    if (!description) {
+      return req.error(400, 'Descrição é obrigatória');
+    }
 
-    // --- BEFORE ---
-    // CREATE & UPDATE: Sanitiza e valida dados de livro
-    this.before(['CREATE', 'UPDATE'], 'Books', async (req) => {
-        try {
-            req.data = sanitizeData(req.data)
-            validateBook(req.data, req)
-        } catch (error) {
-            console.error('Erro ao processar livro:', error)
-            req.error(500, "Erro interno ao processar livro")
-        }
-    })
+    if (!category_ID) {
+      return req.error(400, 'Categoria é obrigatória');
+    }
 
-    // DELETE: Verifica existência do livro antes de deletar
-    this.before('DELETE', 'Books', async (req) => {
-        try {
-            const bookId = req.data.ID
-            const book = await SELECT.from(Books).where({ ID: bookId })
-            if (!book.length) req.error(404, "Livro não encontrado")
-        } catch (error) {
-            console.error('Erro ao deletar livro:', error)
-            req.error(500, "Erro ao deletar livro")
-        }
-    })
+    const categoryExists = await db.run(SELECT.one.from(Category).where({ ID: category_ID }));
+    if (!categoryExists) {
+      return req.error(400, 'Categoria não encontrada');
+    }
+  });
 
-    // --- ON ---
-    // READ: Usa req.query para garantir compatibilidade com drafts e filtros
-    this.on('READ', 'Books', async (req) => {
-        try {
-            return await cds.tx(req).run(req.query)
-        } catch (error) {
-            req.error(500, "Erro ao buscar livros")
-        }
-    })
+  // ===== BooksNoDraft =====
+  this.before(['CREATE', 'UPDATE'], 'BooksNoDraft', async (req) => {
+    const { title, author, stock, datePub, description, category_ID } = req.data;
 
-    // --- AFTER ---
-    // CREATE, UPDATE, DELETE: Log de sucesso (não altera retorno)
-    this.after(['CREATE', 'UPDATE', 'DELETE'], 'Books', async (data, req) => {
-        const entity = req.target.name
-        const operation = req.event
-        console.log(`Operação ${operation} realizada com sucesso em ${entity}`)
-    })
+    if (!title || title.trim().length < 6) {
+      return req.error(400, `Título deve ter pelo menos 6 caracteres`);
+    }
 
-    // ============================
-    // === HANDLERS: CUSTOMERS ====
-    // ============================
+    if (!author || author.trim().length < 4) {
+      return req.error(400, `Autor deve ter pelo menos 4 caracteres`);
+    }
 
-    // --- BEFORE ---
-    // CREATE & UPDATE: Sanitiza e valida dados de cliente
-    this.before(['CREATE', 'UPDATE'], 'Customers', async (req) => {
-        try {
-            req.data = sanitizeData(req.data)
-            validateCustomer(req.data, req)
-        } catch (error) {
-            console.error('Erro ao processar cliente:', error)
-            req.error(500, "Erro interno ao processar cliente")
-        }
-    })
+    if (!datePub) {
+      return req.error(400, 'Data de publicação é obrigatória');
+    }
 
-    // DELETE: Verifica existência do cliente antes de deletar
-    this.before('DELETE', 'Customers', async (req) => {
-        try {
-            const customerId = req.data.ID
-            const customer = await SELECT.from(Customers).where({ ID: customerId })
-            if (!customer.length) req.error(404, "Cliente não encontrado")
-        } catch (error) {
-            console.error('Erro ao deletar cliente:', error)
-            req.error(500, "Erro ao deletar cliente")
-        }
-    })
+    if (!description) {
+      return req.error(400, 'Descrição é obrigatória');
+    }
 
-    // --- ON ---
-    // READ: Retorna todos os clientes
-    this.on('READ', 'Customers', async (req) => {
-        try {
-            return await cds.tx(req).run(req.query)
-        } catch (error) {
-            req.error(500, "Erro ao buscar livros")
-        }
-    })
+    if (stock < 0) {
+      return req.error(400, 'Estoque não pode ser negativo');
+    }
 
-    // --- AFTER ---
-    // CREATE, UPDATE, DELETE: Log de sucesso
-    this.after(['CREATE', 'UPDATE', 'DELETE'], 'Customers', async (data, req) => {
-        const entity = req.target.name
-        const operation = req.event
-        console.log(`Operação ${operation} realizada com sucesso em ${entity}`)
-    })
+    if (!category_ID) {
+      return req.error(400, 'Categoria é obrigatória');
+    }
 
-    // ===========================
-    // === HANDLERS: CATEGORY ====
-    // ===========================
+    const categoryExists = await db.run(SELECT.one.from(Category).where({ ID: category_ID }));
+    if (!categoryExists) {
+      return req.error(400, 'Categoria não encontrada');
+    }
+  });
 
-    // --- BEFORE ---
-    // CREATE & UPDATE: Sanitiza e valida dados de categoria
-    this.before(['CREATE', 'UPDATE'], 'Category', async (req) => {
-        try {
-            req.data = sanitizeData(req.data)
-            validateCategory(req.data, req)
-        } catch (error) {
-            console.error('Erro ao processar categoria:', error)
-            req.error(500, "Erro interno ao processar categoria")
-        }
-    })
+  // ===== CUSTOMERS =====
+  this.before(['CREATE', 'UPDATE'], 'Customers', async (req) => {
+    const { name, dateNasc, cpf } = req.data;
 
-    // DELETE: Verifica existência e uso da categoria antes de deletar
-    this.before('DELETE', 'Category', async (req) => {
-        try {
-            const categoryId = req.data.ID
-            const category = await SELECT.from(Category).where({ ID: categoryId })
-            if (!category.length) req.error(404, "Categoria não encontrada")
-            // Verifica se há livros usando esta categoria
-            const booksWithCategory = await SELECT.from(Books).where({ category_ID: categoryId })
-            if (booksWithCategory.length > 0) req.error(400, "Não é possível deletar categoria em uso")
-        } catch (error) {
-            console.error('Erro ao deletar categoria:', error)
-            req.error(500, "Erro ao deletar categoria")
-        }
-    })
+    if (!name || name.trim().length < 3) {
+      return req.error(400, `Nome deve ter pelo menos 3 caracteres`);
+    }
 
-    // --- ON ---
-    // READ: Retorna todas as categorias
-    this.on('READ', 'Category', async (req) => {
-        try {
-            return await cds.tx(req).run(req.query)
-        } catch (error) {
-            req.error(500, "Erro ao buscar livros")
-        }
-    })
-    // --- AFTER ---
-    // CREATE, UPDATE, DELETE: Log de sucesso
-    this.after(['CREATE', 'UPDATE', 'DELETE'], 'Category', async (data, req) => {
-        const entity = req.target.name
-        const operation = req.event
-        console.log(`Operação ${operation} realizada com sucesso em ${entity}`)
-    })
+    if (!dateNasc) {
+      return req.error(400, 'Data de nascimento é obrigatória');
+    }
 
-    // ===========================
-    // === HANDLERS: INTEREST ====
-    // ===========================
+    if (!cpf || cpf.length !== 11) {
+      return req.error(400, 'CPF inválido');
+    }
 
-    // --- BEFORE ---
-    // CREATE & UPDATE: Valida existência de cliente e categoria, e duplicidade de interesse
-    this.before(['CREATE', 'UPDATE'], 'Interest', async (req) => {
-        try {
-            const { customer_ID, category_ID } = req.data
-            // Valida cliente
-            const customer = await SELECT.from(Customers).where({ ID: customer_ID })
-            if (!customer.length) req.error(404, "Cliente não encontrado")
-            // Valida categoria
-            const category = await SELECT.from(Category).where({ ID: category_ID })
-            if (!category.length) req.error(404, "Categoria não encontrada")
-            // Verifica duplicidade (apenas para CREATE)
-            if (req.event === 'CREATE') {
-                const existingInterest = await SELECT.from(Interest)
-                    .where({ customer_ID: customer_ID, category_ID: category_ID })
-                if (existingInterest.length > 0) req.error(400, "Interesse já registrado para este cliente e categoria")
-            }
-        } catch (error) {
-            console.error('Erro ao processar interesse:', error)
-            req.error(500, "Erro interno ao processar interesse")
-        }
-    })
+    const existingCPF = await db.run(SELECT.one.from(Customers).where({ cpf }));
+    if (existingCPF) {
+      return req.error(400, 'CPF já cadastrado');
+    }
+  });
 
-    // DELETE: Verifica existência do interesse antes de deletar
-    this.before('DELETE', 'Interest', async (req) => {
-        try {
-            const interestId = req.data.ID
-            const interest = await SELECT.from(Interest).where({ ID: interestId })
-            if (!interest.length) req.error(404, "Interesse não encontrado")
-        } catch (error) {
-            console.error('Erro ao deletar interesse:', error)
-            req.error(500, "Erro ao deletar interesse")
-        }
-    })
+  // ===== CATEGORY =====
+  this.before(['CREATE', 'UPDATE'], 'Category', async (req) => {
+    const { name, description } = req.data;
 
-    // --- ON ---
-    // READ: Retorna todos os interesses
-    this.on('READ', 'Interest', async (req) => {
-        try {
-            return await cds.tx(req).run(req.query)
-        } catch (error) {
-            req.error(500, "Erro ao buscar livros")
-        }
-    })
+    if (!name || name.trim().length < 3) {
+      return req.error(400, `Nome deve ter pelo menos 3 caracteres`);
+    }
 
-    // --- AFTER ---
-    // CREATE, UPDATE, DELETE: Log de sucesso
-    this.after(['CREATE', 'UPDATE', 'DELETE'], 'Interest', async (data, req) => {
-        const entity = req.target.name
-        const operation = req.event
-        console.log(`Operação ${operation} realizada com sucesso em ${entity}`)
-    })
+    if (!description) {
+      return req.error(400, 'Descrição é obrigatória');
+    }
+  });
 
-    // ===========================
-    // === HANDLER GLOBAL DE ERRO
-    // ===========================
-    this.on('error', (err) => {
-        console.error('Erro no serviço:', err)
-        return err
-    })
+  this.before('DELETE', 'Category', async (req) => {
+    const categoryId = req.data.ID;
+    
+    const booksWithCategory = await db.run(
+      SELECT.from(Books).where({ category_ID: categoryId })
+    );
+
+    if (booksWithCategory.length > 0) {
+      return req.error(400, 'Não é possível deletar categoria em uso');
+    }
+  });
+
+  // ===== INTEREST =====
+  this.before(['CREATE', 'UPDATE'], 'Interest', async (req) => {
+    const { customer_ID, category_ID } = req.data;
+
+    const customer = await db.run(SELECT.one.from(Customers).where({ ID: customer_ID }));
+    if (!customer) {
+      return req.error(404, 'Cliente não encontrado');
+    }
+
+    const category = await db.run(SELECT.one.from(Category).where({ ID: category_ID }));
+    if (!category) {
+      return req.error(404, 'Categoria não encontrada');
+    }
+
+    const existingInterest = await db.run(
+      SELECT.one.from(Interest).where({ 
+        customer_ID: customer_ID, 
+        category_ID: category_ID 
+      })
+    );
+
+    if (existingInterest) {
+      return req.error(400, 'Interesse já registrado');
+    }
+  });
+
+  // Handlers genéricos de READ para todas as entidades
+  this.on('READ', 'BooksNoDraft', async (req) => {
+    const db = await cds.connect.to('db')
+    return await db.run(req.query)
+  })
+
+  // Handler global de erro
+  this.on('error', (err) => {
+    console.error('Erro no serviço:', err);
+    return err;
+  })
 })
