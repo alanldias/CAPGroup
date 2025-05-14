@@ -4,8 +4,8 @@ const { Books, Customers, Category, Interest } = cds.entities('my.bookshop')
 // Constantes para validação
 const VALIDATION_RULES = {
     BOOK: {
-        MIN_TITLE_LENGTH: 5,
-        MIN_AUTHOR_LENGTH: 3,
+        MIN_TITLE_LENGTH: 6,
+        MIN_AUTHOR_LENGTH: 4,
         DEFAULT_STOCK: 0
     },
     CUSTOMER: {
@@ -18,7 +18,9 @@ const VALIDATION_RULES = {
 }
 
 module.exports = cds.service.impl(async function() {
-    // Funções de sanitização
+
+    // --- Funções utilitárias ---
+    // Sanitiza strings removendo espaços
     const sanitizeData = (data) => {
         const sanitized = {}
         for (let key in data) {
@@ -31,18 +33,17 @@ module.exports = cds.service.impl(async function() {
         return sanitized
     }
 
-    // Validações para Livros
+    // Validação de Livros
     const validateBook = (data, req) => {
         console.log('Validando livro:', data)
-        const { title, author, stock, datePub, description, category } = data
-        
+        const { title, author, stock, datePub, description } = data
         const validations = [
             {
-                condition: !title || title.length <= VALIDATION_RULES.BOOK.MIN_TITLE_LENGTH,
+                condition: !title || title.length < VALIDATION_RULES.BOOK.MIN_TITLE_LENGTH,
                 message: `O título deve ter pelo menos ${VALIDATION_RULES.BOOK.MIN_TITLE_LENGTH} caracteres`
             },
             {
-                condition: !author || author.length <= VALIDATION_RULES.BOOK.MIN_AUTHOR_LENGTH,
+                condition: !author || author.length < VALIDATION_RULES.BOOK.MIN_AUTHOR_LENGTH,
                 message: `O nome do autor deve ter pelo menos ${VALIDATION_RULES.BOOK.MIN_AUTHOR_LENGTH} caracteres`
             },
             {
@@ -57,27 +58,23 @@ module.exports = cds.service.impl(async function() {
                 condition: data.stock < 0,
                 message: "O estoque não pode estar negativo"
             },
-            // {
-            //     condition: !category,
-            //     message: "Categoria é obrigatória"
-            // }
-        ]
-
-        validations.forEach(({ condition, message }) => {
-            if(condition) {
-                req.error(400, message)
+            {
+                condition: !(data.category || data.category_ID),
+                message: "Categoria é obrigatória"
             }
+        ]
+        validations.forEach(({ condition, message }) => {
+            if (condition) req.error(400, message)
         })
 
         if (!stock) data.stock = VALIDATION_RULES.BOOK.DEFAULT_STOCK
-        return data
+
     }
 
-    // Validações para Clientes
+    // Validação de Clientes
     const validateCustomer = (data, req) => {
         console.log('Validando cliente:', data)
         const { name, dateNasc, cpf } = data
-
         const validations = [
             {
                 condition: !name || name.length <= VALIDATION_RULES.CUSTOMER.MIN_NAME_LENGTH,
@@ -92,21 +89,16 @@ module.exports = cds.service.impl(async function() {
                 message: "CPF inválido!"
             }
         ]
-
         validations.forEach(({ condition, message }) => {
-            if(condition) {
-                req.error(400, message)
-            }
+            if (condition) req.error(400, message)
         })
-
         return data
     }
 
-    // Validações para Categorias
+    // Validação de Categorias
     const validateCategory = (data, req) => {
         console.log('Validando categoria:', data)
         const { name, description } = data
-
         const validations = [
             {
                 condition: !name || name.length <= VALIDATION_RULES.CATEGORY.MIN_NAME_LENGTH,
@@ -117,17 +109,18 @@ module.exports = cds.service.impl(async function() {
                 message: "Descrição é obrigatória!"
             }
         ]
-
         validations.forEach(({ condition, message }) => {
-            if(condition) {
-                req.error(400, message)
-            }
+            if (condition) req.error(400, message)
         })
-
         return data
     }
 
-    // Handlers para Livros
+    // =========================
+    // === HANDLERS: BOOKS ====
+    // =========================
+
+    // --- BEFORE ---
+    // CREATE & UPDATE: Sanitiza e valida dados de livro
     this.before(['CREATE', 'UPDATE'], 'Books', async (req) => {
         try {
             req.data = sanitizeData(req.data)
@@ -138,32 +131,42 @@ module.exports = cds.service.impl(async function() {
         }
     })
 
-    // this.on('READ', 'Books', async (req) => {
-    //     try {
-    //         const books = await SELECT.from(Books)
-    //         console.log(`${books.length} livros encontrados`)
-    //         return books
-    //     } catch (error) {
-    //         console.error('Erro ao ler livros:', error)
-    //         req.error(500, "Erro ao buscar livros")
-    //     }
-    // })
-
+    // DELETE: Verifica existência do livro antes de deletar
     this.before('DELETE', 'Books', async (req) => {
         try {
             const bookId = req.data.ID
             const book = await SELECT.from(Books).where({ ID: bookId })
-            
-            if (!book.length) {
-                req.error(404, "Livro não encontrado")
-            }
+            if (!book.length) req.error(404, "Livro não encontrado")
         } catch (error) {
             console.error('Erro ao deletar livro:', error)
             req.error(500, "Erro ao deletar livro")
         }
     })
 
-    // Handlers para Clientes
+    // --- ON ---
+    // READ: Usa req.query para garantir compatibilidade com drafts e filtros
+    this.on('READ', 'Books', async (req) => {
+        try {
+            return await cds.tx(req).run(req.query)
+        } catch (error) {
+            req.error(500, "Erro ao buscar livros")
+        }
+    })
+
+    // --- AFTER ---
+    // CREATE, UPDATE, DELETE: Log de sucesso (não altera retorno)
+    this.after(['CREATE', 'UPDATE', 'DELETE'], 'Books', async (data, req) => {
+        const entity = req.target.name
+        const operation = req.event
+        console.log(`Operação ${operation} realizada com sucesso em ${entity}`)
+    })
+
+    // ============================
+    // === HANDLERS: CUSTOMERS ====
+    // ============================
+
+    // --- BEFORE ---
+    // CREATE & UPDATE: Sanitiza e valida dados de cliente
     this.before(['CREATE', 'UPDATE'], 'Customers', async (req) => {
         try {
             req.data = sanitizeData(req.data)
@@ -174,99 +177,104 @@ module.exports = cds.service.impl(async function() {
         }
     })
 
-    //errado
-    // this.on('READ', 'Customers', async (req) => {
-    //     try {
-    //         const customers = await SELECT.from(Customers)
-    //         console.log(`${customers.length} clientes encontrados`)
-    //         return customers
-    //     } catch (error) {
-    //         console.error('Erro ao ler clientes:', error)
-    //         req.error(500, "Erro ao buscar clientes")
-    //     }
-    // })
-
+    // DELETE: Verifica existência do cliente antes de deletar
     this.before('DELETE', 'Customers', async (req) => {
         try {
             const customerId = req.data.ID
             const customer = await SELECT.from(Customers).where({ ID: customerId })
-            
-            if (!customer.length) {
-                req.error(404, "Cliente não encontrado")
-            }
+            if (!customer.length) req.error(404, "Cliente não encontrado")
         } catch (error) {
             console.error('Erro ao deletar cliente:', error)
             req.error(500, "Erro ao deletar cliente")
         }
     })
 
-    // Handlers para Categorias
-    // this.before(['CREATE', 'UPDATE'], 'Category', async (req) => {
-    //     try {
-    //         req.data = sanitizeData(req.data)
-    //         validateCategory(req.data, req)
-    //     } catch (error) {
-    //         console.error('Erro ao processar categoria:', error)
-    //         req.error(500, "Erro interno ao processar categoria")
-    //     }
-    // })
+    // --- ON ---
+    // READ: Retorna todos os clientes
+    this.on('READ', 'Customers', async (req) => {
+        try {
+            return await cds.tx(req).run(req.query)
+        } catch (error) {
+            req.error(500, "Erro ao buscar livros")
+        }
+    })
 
-    // this.on('READ', 'Category', async (req) => {
-    //     try {
-    //         const categories = await SELECT.from(Category)
-    //         console.log(`${categories.length} categorias encontradas`)
-    //         return categories
-    //     } catch (error) {
-    //         console.error('Erro ao ler categorias:', error)
-    //         req.error(500, "Erro ao buscar categorias")
-    //     }
-    // })
+    // --- AFTER ---
+    // CREATE, UPDATE, DELETE: Log de sucesso
+    this.after(['CREATE', 'UPDATE', 'DELETE'], 'Customers', async (data, req) => {
+        const entity = req.target.name
+        const operation = req.event
+        console.log(`Operação ${operation} realizada com sucesso em ${entity}`)
+    })
 
+    // ===========================
+    // === HANDLERS: CATEGORY ====
+    // ===========================
+
+    // --- BEFORE ---
+    // CREATE & UPDATE: Sanitiza e valida dados de categoria
+    this.before(['CREATE', 'UPDATE'], 'Category', async (req) => {
+        try {
+            req.data = sanitizeData(req.data)
+            validateCategory(req.data, req)
+        } catch (error) {
+            console.error('Erro ao processar categoria:', error)
+            req.error(500, "Erro interno ao processar categoria")
+        }
+    })
+
+    // DELETE: Verifica existência e uso da categoria antes de deletar
     this.before('DELETE', 'Category', async (req) => {
         try {
             const categoryId = req.data.ID
             const category = await SELECT.from(Category).where({ ID: categoryId })
-            
-            if (!category.length) {
-                req.error(404, "Categoria não encontrada")
-            }
-
-            // Verificar se existem livros usando esta categoria
+            if (!category.length) req.error(404, "Categoria não encontrada")
+            // Verifica se há livros usando esta categoria
             const booksWithCategory = await SELECT.from(Books).where({ category_ID: categoryId })
-            if (booksWithCategory.length > 0) {
-                req.error(400, "Não é possível deletar categoria em uso")
-            }
+            if (booksWithCategory.length > 0) req.error(400, "Não é possível deletar categoria em uso")
         } catch (error) {
             console.error('Erro ao deletar categoria:', error)
             req.error(500, "Erro ao deletar categoria")
         }
     })
 
-    // Handlers para Interesses
+    // --- ON ---
+    // READ: Retorna todas as categorias
+    this.on('READ', 'Category', async (req) => {
+        try {
+            return await cds.tx(req).run(req.query)
+        } catch (error) {
+            req.error(500, "Erro ao buscar livros")
+        }
+    })
+    // --- AFTER ---
+    // CREATE, UPDATE, DELETE: Log de sucesso
+    this.after(['CREATE', 'UPDATE', 'DELETE'], 'Category', async (data, req) => {
+        const entity = req.target.name
+        const operation = req.event
+        console.log(`Operação ${operation} realizada com sucesso em ${entity}`)
+    })
+
+    // ===========================
+    // === HANDLERS: INTEREST ====
+    // ===========================
+
+    // --- BEFORE ---
+    // CREATE & UPDATE: Valida existência de cliente e categoria, e duplicidade de interesse
     this.before(['CREATE', 'UPDATE'], 'Interest', async (req) => {
         try {
             const { customer_ID, category_ID } = req.data
-
-            // Validar se cliente existe
+            // Valida cliente
             const customer = await SELECT.from(Customers).where({ ID: customer_ID })
-            if (!customer.length) {
-                req.error(404, "Cliente não encontrado")
-            }
-
-            // Validar se categoria existe
+            if (!customer.length) req.error(404, "Cliente não encontrado")
+            // Valida categoria
             const category = await SELECT.from(Category).where({ ID: category_ID })
-            if (!category.length) {
-                req.error(404, "Categoria não encontrada")
-            }
-
-            // Verificar se interesse já existe (apenas para CREATE)
+            if (!category.length) req.error(404, "Categoria não encontrada")
+            // Verifica duplicidade (apenas para CREATE)
             if (req.event === 'CREATE') {
                 const existingInterest = await SELECT.from(Interest)
                     .where({ customer_ID: customer_ID, category_ID: category_ID })
-                
-                if (existingInterest.length > 0) {
-                    req.error(400, "Interesse já registrado para este cliente e categoria")
-                }
+                if (existingInterest.length > 0) req.error(400, "Interesse já registrado para este cliente e categoria")
             }
         } catch (error) {
             console.error('Erro ao processar interesse:', error)
@@ -274,40 +282,40 @@ module.exports = cds.service.impl(async function() {
         }
     })
 
-    // this.on('READ', 'Interest', async (req) => {
-    //     try {
-    //         const interests = await SELECT.from(Interest)
-    //         console.log(`${interests.length} interesses encontrados`)
-    //         return interests
-    //     } catch (error) {
-    //         console.error('Erro ao ler interesses:', error)
-    //         req.error(500, "Erro ao buscar interesses")
-    //     }
-    // })
-
+    // DELETE: Verifica existência do interesse antes de deletar
     this.before('DELETE', 'Interest', async (req) => {
         try {
             const interestId = req.data.ID
             const interest = await SELECT.from(Interest).where({ ID: interestId })
-            
-            if (!interest.length) {
-                req.error(404, "Interesse não encontrado")
-            }
+            if (!interest.length) req.error(404, "Interesse não encontrado")
         } catch (error) {
             console.error('Erro ao deletar interesse:', error)
             req.error(500, "Erro ao deletar interesse")
         }
     })
 
-    // Handlers para mensagens de sucesso
-    this.after(['CREATE', 'UPDATE', 'DELETE'], ['Books', 'Customers', 'Category', 'Interest'], async (data, req) => {
+    // --- ON ---
+    // READ: Retorna todos os interesses
+    this.on('READ', 'Interest', async (req) => {
+        try {
+            return await cds.tx(req).run(req.query)
+        } catch (error) {
+            req.error(500, "Erro ao buscar livros")
+        }
+    })
+
+    // --- AFTER ---
+    // CREATE, UPDATE, DELETE: Log de sucesso
+    this.after(['CREATE', 'UPDATE', 'DELETE'], 'Interest', async (data, req) => {
         const entity = req.target.name
         const operation = req.event
         console.log(`Operação ${operation} realizada com sucesso em ${entity}`)
     })
 
-    // Handler global para erros
-    this.on('error', (err, req) => {
+    // ===========================
+    // === HANDLER GLOBAL DE ERRO
+    // ===========================
+    this.on('error', (err) => {
         console.error('Erro no serviço:', err)
         return err
     })
