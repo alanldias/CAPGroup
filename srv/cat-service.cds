@@ -8,3 +8,4 @@ service CatalogService {
     entity Customers as projection on my.Customers;
     entity Interest as projection on my.Interest;
 }
+ 
