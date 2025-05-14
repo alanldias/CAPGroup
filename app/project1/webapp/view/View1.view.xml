@@ -47,12 +47,12 @@
                 </HBox>
 
                 <Table id="BooksTable" items="{
-                    path: '/Books',
-                    parameters: {
-                        $select: 'ID,title,author,datePub,description',
-                        $expand: 'category'
-                    }
-                }">
+                                        path: '/BooksNoDraft',
+                                        parameters: {
+                                        $select: 'ID,title,author,datePub,description',
+                                        $expand: 'category'
+                                        }
+                                    }">
                     <columns>
                         <Column id="columBook">
                             <Text id="txtBook" text="{i18n>col.livro}" />

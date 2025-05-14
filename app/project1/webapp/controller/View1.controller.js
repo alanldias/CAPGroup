@@ -194,7 +194,7 @@ sap.ui.define([
                 };
         
                 // ✅ Aqui usamos bindList().create() que funciona com OData V4
-                const oBinding = oModel.bindList("/Books", null, null, null, {
+                const oBinding = oModel.bindList("/BooksNoDraft", null, null, null, {
                     $$updateGroupId: sGroupId
                 });
         
