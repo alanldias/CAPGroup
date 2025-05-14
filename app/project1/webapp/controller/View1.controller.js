@@ -217,6 +217,15 @@ sap.ui.define([
             } else {
                 oCategoryId.setValueState("None");
             }
+
+            // Descrição
+            if (!description || description.length < 5) {
+                oDesc.setValueState("Error");
+                oDesc.setValueStateText("Descrição deve ter ao menos 5 caracteres.");
+                isValid = false;
+            } else {
+                oDesc.setValueState("None");
+            }
         
             // Data
             if (!datePub || datePub > new Date()) {
@@ -418,6 +427,14 @@ sap.ui.define([
                 isValid = false;
             } else {
                 oCategoryId.setValueState("None");
+            }
+
+            if (!description || description.length < 5) {
+                oDesc.setValueState("Error");
+                oDesc.setValueStateText("Descrição deve ter ao menos 5 caracteres.");
+                isValid = false;
+            } else {
+                oDesc.setValueState("None");
             }
         
             if (!datePub || datePub > new Date()) {
