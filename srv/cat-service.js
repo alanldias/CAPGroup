@@ -57,10 +57,10 @@ module.exports = cds.service.impl(async function() {
                 condition: data.stock < 0,
                 message: "O estoque não pode estar negativo"
             },
-            {
-                condition: !category,
-                message: "Categoria é obrigatória"
-            }
+            // {
+            //     condition: !category,
+            //     message: "Categoria é obrigatória"
+            // }
         ]
 
         validations.forEach(({ condition, message }) => {
@@ -138,16 +138,16 @@ module.exports = cds.service.impl(async function() {
         }
     })
 
-    this.on('READ', 'Books', async (req) => {
-        try {
-            const books = await SELECT.from(Books)
-            console.log(`${books.length} livros encontrados`)
-            return books
-        } catch (error) {
-            console.error('Erro ao ler livros:', error)
-            req.error(500, "Erro ao buscar livros")
-        }
-    })
+    // this.on('READ', 'Books', async (req) => {
+    //     try {
+    //         const books = await SELECT.from(Books)
+    //         console.log(`${books.length} livros encontrados`)
+    //         return books
+    //     } catch (error) {
+    //         console.error('Erro ao ler livros:', error)
+    //         req.error(500, "Erro ao buscar livros")
+    //     }
+    // })
 
     this.before('DELETE', 'Books', async (req) => {
         try {
@@ -174,16 +174,17 @@ module.exports = cds.service.impl(async function() {
         }
     })
 
-    this.on('READ', 'Customers', async (req) => {
-        try {
-            const customers = await SELECT.from(Customers)
-            console.log(`${customers.length} clientes encontrados`)
-            return customers
-        } catch (error) {
-            console.error('Erro ao ler clientes:', error)
-            req.error(500, "Erro ao buscar clientes")
-        }
-    })
+    //errado
+    // this.on('READ', 'Customers', async (req) => {
+    //     try {
+    //         const customers = await SELECT.from(Customers)
+    //         console.log(`${customers.length} clientes encontrados`)
+    //         return customers
+    //     } catch (error) {
+    //         console.error('Erro ao ler clientes:', error)
+    //         req.error(500, "Erro ao buscar clientes")
+    //     }
+    // })
 
     this.before('DELETE', 'Customers', async (req) => {
         try {
@@ -200,26 +201,26 @@ module.exports = cds.service.impl(async function() {
     })
 
     // Handlers para Categorias
-    this.before(['CREATE', 'UPDATE'], 'Category', async (req) => {
-        try {
-            req.data = sanitizeData(req.data)
-            validateCategory(req.data, req)
-        } catch (error) {
-            console.error('Erro ao processar categoria:', error)
-            req.error(500, "Erro interno ao processar categoria")
-        }
-    })
+    // this.before(['CREATE', 'UPDATE'], 'Category', async (req) => {
+    //     try {
+    //         req.data = sanitizeData(req.data)
+    //         validateCategory(req.data, req)
+    //     } catch (error) {
+    //         console.error('Erro ao processar categoria:', error)
+    //         req.error(500, "Erro interno ao processar categoria")
+    //     }
+    // })
 
-    this.on('READ', 'Category', async (req) => {
-        try {
-            const categories = await SELECT.from(Category)
-            console.log(`${categories.length} categorias encontradas`)
-            return categories
-        } catch (error) {
-            console.error('Erro ao ler categorias:', error)
-            req.error(500, "Erro ao buscar categorias")
-        }
-    })
+    // this.on('READ', 'Category', async (req) => {
+    //     try {
+    //         const categories = await SELECT.from(Category)
+    //         console.log(`${categories.length} categorias encontradas`)
+    //         return categories
+    //     } catch (error) {
+    //         console.error('Erro ao ler categorias:', error)
+    //         req.error(500, "Erro ao buscar categorias")
+    //     }
+    // })
 
     this.before('DELETE', 'Category', async (req) => {
         try {
@@ -273,16 +274,16 @@ module.exports = cds.service.impl(async function() {
         }
     })
 
-    this.on('READ', 'Interest', async (req) => {
-        try {
-            const interests = await SELECT.from(Interest)
-            console.log(`${interests.length} interesses encontrados`)
-            return interests
-        } catch (error) {
-            console.error('Erro ao ler interesses:', error)
-            req.error(500, "Erro ao buscar interesses")
-        }
-    })
+    // this.on('READ', 'Interest', async (req) => {
+    //     try {
+    //         const interests = await SELECT.from(Interest)
+    //         console.log(`${interests.length} interesses encontrados`)
+    //         return interests
+    //     } catch (error) {
+    //         console.error('Erro ao ler interesses:', error)
+    //         req.error(500, "Erro ao buscar interesses")
+    //     }
+    // })
 
     this.before('DELETE', 'Interest', async (req) => {
         try {
