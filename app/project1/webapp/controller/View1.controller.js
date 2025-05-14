@@ -192,18 +192,18 @@ sap.ui.define([
             let isValid = true;
         
             // Título
-            if (!title || title.length < 5) {
+            if (!title || title.length < 6) {
                 oTitle.setValueState("Error");
-                oTitle.setValueStateText("Título deve ter ao menos 3 caracteres.");
+                oTitle.setValueStateText("Título deve ter pelo menos 6 caracteres");
                 isValid = false;
             } else {
                 oTitle.setValueState("None");
             }
         
             // Autor
-            if (!author) {
+            if (!author || author.length < 4) {
                 oAuthor.setValueState("Error");
-                oAuthor.setValueStateText("Autor é obrigatório.");
+                oAuthor.setValueStateText("Autor deve ter pelo menos 4 caracteres");
                 isValid = false;
             } else {
                 oAuthor.setValueState("None");
