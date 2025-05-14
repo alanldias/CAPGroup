@@ -13,7 +13,7 @@ entity Books: cuid, managed {
   description: String;
   author: String not null;
   datePub: Date not null;
-  stock: Integer;
+  stock: Integer not null;
   category: Association to Category not null;
 }
 
