@@ -1,0 +1,97 @@
+<mvc:View controllerName="fioricustom.project1.controller.View1"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Page id="page" title="{i18n>title}">
+        <VBox id="conteudo" justifyContent="Center" alignItems="Center">
+            <Panel id="Painel" width="1200px" class="sapUiResponsiveMargin painel" accessibleRole="Region">
+                <headerToolbar>
+                    <OverflowToolbar id="headerForm">
+                        <Title id="TitlePainel" text="{i18n>painel.title}" />
+                        <Button id="btnAddBook" text="{i18n>btn.addBook}" press="onAddBook" class="sapUiSmallMarginBegin" />
+                    </OverflowToolbar>
+                </headerToolbar>
+
+                <HBox id="filterBox" class="sapUiSmallMargin" alignItems="Center" justifyContent="Start">
+                    <Label id="labelTitle" text="{i18n>label.title}" labelFor="inputTitle"/>
+                    <Input id="inputTitle" width="200px" placeholder="{i18n>label.title}" class="sapUiSmallMarginBegin" />
+
+                    <Label id="labelCategory" text="{i18n>label.category}" labelFor="inputCategory" class="sapUiSmallMarginBegin" />
+                    <Input id="inputCategory" width="200px" placeholder="{i18n>label.category}" class="sapUiSmallMarginBegin" />
+
+                    <Label id="labelPessoa" text="{i18n>label.pessoa}" labelFor="inputPessoa" class="sapUiSmallMarginBegin" />
+                    <Select id="customerSelect" items="{/Customers}" selectedKey="someDefaultId" class="sapUiSmallMarginBegin">
+                        <core:Item id="customerItemTemplate" key="{ID}" text="{name}" />
+                    </Select>
+
+                    <Button id="btnFilter" text="{i18n>btn.filter}" press="onFilterBooks" class="sapUiSmallMarginBegin" />
+                    <Button id="btnClear" text="{i18n>btn.clear}" press="onClearFilters" type="Transparent" class="sapUiSmallMarginBegin" />
+                    <Button id="btnSuggested" text="{i18n>btn.suggested}" press="onFilterSuggestedBooks" type="Emphasized" class="sapUiSmallMarginBegin" />
+                </HBox>
+
+                <HBox id="Filtros" width="100%" alignItems="Center" justifyContent="Start" class="sapUiSmallMarginBottom">
+                    <Label id="labelVisualizacao" text="{i18n>label.visualizacao}" />
+                    <SegmentedButton id="moduleSwitcher" selectionChange="onModuleChange" class="sapUiSmallMarginBegin">
+                        <layoutData>
+                            <FlexItemData id="flex" growFactor="1" />
+                        </layoutData>
+                        <items>
+                            <SegmentedButtonItem id="TabAll" key="tudo" text="{i18n>segmented.all}" />
+                            <SegmentedButtonItem id="TabA-C" key="autorCategoria" text="{i18n>segmented.autorCategoria}" />
+                            <SegmentedButtonItem id="TabC-T" key="categoriaTitulo" text="{i18n>segmented.categoriaTitulo}" />
+                            <SegmentedButtonItem id="TabTi" key="titulo" text="{i18n>segmented.titulo}" />
+                            <SegmentedButtonItem id="TabAut" key="autor" text="{i18n>segmented.autor}" />
+                            <SegmentedButtonItem id="TabCat" key="categoria" text="{i18n>segmented.categoria}" />
+                        </items>
+                    </SegmentedButton>
+                </HBox>
+
+                <Table id="BooksTable" items="{
+                                        path: '/BooksNoDraft',
+                                        parameters: {
+                                        $select: 'ID,title,author,datePub,description',
+                                        $expand: 'category'
+                                        }
+                                    }">
+                    <columns>
+                        <Column id="columBook">
+                            <Text id="txtBook" text="{i18n>col.livro}" />
+                        </Column>
+                        <Column id="columAuthor">
+                            <Text id="txtAuthor" text="{i18n>col.autor}" />
+                        </Column>
+                        <Column id="columDatePub">
+                            <Text id="txtDatePub" text="{i18n>col.dataPub}" />
+                        </Column>
+                        <Column id="columCategory">
+                            <Text id="txtCategory" text="{i18n>col.categoria}" />
+                        </Column>
+                        <Column id="columStock">
+                            <Text id="txtStock" text="{i18n>col.estoque}" />
+                        </Column>
+                        <Column id="columActions">
+                            <Text id="txtActions" text="{i18n>col.acoes}" />
+                        </Column>
+                    </columns>
+
+                    <items>
+                        <ColumnListItem id="clmnListItem">
+                            <cells>
+                                <Text id="cellBook" text="{title}" />
+                                <Text id="cellAuthor" text="{author}" />
+                                <Text id="cellDatePub" text="{datePub}" />
+                                <Text id="cellCategory" text="{category/name}" />
+                                <Text id="cellStock" text="{stock}" />
+                                <HBox id="Botoes">
+                                    <Button id="cellActions" icon="sap-icon://action" press="onBookDetailsPress" tooltip="{i18n>tooltip.details}" />
+                                    <Button id="cellActionsEdit" icon="sap-icon://edit" press="onEditBook" tooltip="{i18n>tooltip.edit}" />
+                                    <Button id="cellActionsDelete" icon="sap-icon://delete" press="onDeleteBook" tooltip="{i18n>tooltip.delete}" type="Reject" />
+                                </HBox>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </Panel>
+        </VBox>
+    </Page>
+</mvc:View>
